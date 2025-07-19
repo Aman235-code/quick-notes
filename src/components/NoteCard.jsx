@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { FaEdit, FaTags } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
@@ -13,7 +14,7 @@ const tagColors = [
   "bg-red-100 text-red-800",
 ];
 
-const NoteCard = ({ note, onEdit, onDelete }) => {
+const NoteCard = ({ note, onEdit, onDelete, onTagClick }) => {
   const [showFullText, setShowFullText] = useState(false);
 
   const toggleReadMore = () => setShowFullText(!showFullText);
@@ -77,13 +78,19 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
         {note.tags?.map((tag, idx) => {
           const color = tagColors[idx % tagColors.length];
           return (
-            <div
+            <button
               key={idx}
-              className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${color} shadow-md hover:scale-105 transition-transform duration-150`}
-              title={`Tag: ${tag}`}
+              onClick={() => {
+                if (typeof onTagClick === "function") onTagClick(tag);
+              }}
+              className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${color} 
+                shadow-[inset_4px_4px_8px_rgba(255,255,255,0.6),_inset_-4px_-4px_8px_rgba(0,0,0,0.1)]
+                hover:scale-105 hover:shadow-[0_0_10px_rgba(99,102,241,0.5)]
+                transition-transform duration-150 active:scale-95`}
+              title={`Filter by #${tag}`}
             >
               <FaTags className="mr-1" /> #{tag}
-            </div>
+            </button>
           );
         })}
       </div>
