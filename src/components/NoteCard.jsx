@@ -32,7 +32,7 @@ const NoteCard = ({ note, onEdit, onDelete, onTagClick }) => {
       className="text-black border border-indigo-500 rounded-2xl p-6 relative hover:shadow-[0_0_25px_rgba(99,102,241,0.8)] transition-all duration-300"
     >
       {/* Title */}
-      <h3 className="font-bold text-xl text-center text-indigo-400 mb-4">
+      <h3 className="font-bold text-xl text-center  text-indigo-400 mb-4">
         {note.title}
       </h3>
 
@@ -106,7 +106,7 @@ const NoteCard = ({ note, onEdit, onDelete, onTagClick }) => {
         />
         <MdDelete
           className="text-red-400 hover:text-red-600 cursor-pointer"
-          onClick={onDelete}
+          onClick={() => onDelete()} // now this will be confirmDelete(index)
         />
       </div>
     </motion.div>

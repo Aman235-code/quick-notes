@@ -5,6 +5,7 @@ import NoteCard from "./components/NoteCard";
 import NoteModal from "./components/NoteModal";
 import SearchBar from "./components/SearchBar";
 import FolderModal from "./components/FolderModal";
+import toast, { Toaster } from "react-hot-toast";
 
 const App = () => {
   const [folders, setFolders] = useState(
@@ -24,6 +25,10 @@ const App = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
+
+  // Delete modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("folders", JSON.stringify(folders));
@@ -54,12 +59,19 @@ const App = () => {
     setShowModal(false);
   };
 
-  const deleteNote = (index) => {
+  const confirmDelete = (index) => {
+    setDeleteIndex(index);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = () => {
     setFolders((prev) => {
       const updated = [...prev[activeFolder]];
-      updated.splice(index, 1);
+      updated.splice(deleteIndex, 1);
       return { ...prev, [activeFolder]: updated };
     });
+    setShowDeleteModal(false);
+    toast.success("Note deleted successfully!");
   };
 
   const editNote = (index) => {
@@ -85,6 +97,7 @@ const App = () => {
 
   return (
     <div className="flex h-screen relative">
+      <Toaster position="top-center" />
       {showSidebar && (
         <Sidebar
           folderOrder={folderOrder}
@@ -125,7 +138,7 @@ const App = () => {
               key={i}
               note={note}
               onEdit={() => editNote(i)}
-              onDelete={() => deleteNote(i)}
+              onDelete={() => confirmDelete(i)}
             />
           ))}
         </div>
@@ -158,6 +171,35 @@ const App = () => {
             setShowFolderModal(false);
           }}
         />
+      )}
+
+      {/* 🗑 Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-xl p-6 w-[90%] max-w-sm shadow-xl">
+            <h2 className="text-lg font-semibold text-red-600 mb-2">
+              Confirm Delete
+            </h2>
+            <p className="text-sm mb-4">
+              Are you sure you want to delete this note? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 text-sm rounded bg-red-500 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
