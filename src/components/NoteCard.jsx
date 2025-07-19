@@ -62,7 +62,7 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
         {note.description.length > 200 && (
           <button
             onClick={toggleReadMore}
-            className="text-sm text-indigo-400 hover:underline mt-2"
+            className="text-sm text-indigo-400 hover:underline mt-2 hover:cursor-pointer"
           >
             {showFullText ? "Read Less" : "Read More"}
           </button>
