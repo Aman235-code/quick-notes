@@ -1,11 +1,17 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
-import { MdArrowForwardIos, MdArrowBackIosNew } from "react-icons/md";
+import {
+  MdArrowForwardIos,
+  MdArrowBackIosNew,
+  MdOutlineDeleteForever,
+} from "react-icons/md";
 import Sidebar from "./components/Sidebar";
 import NoteCard from "./components/NoteCard";
 import NoteModal from "./components/NoteModal";
 import SearchBar from "./components/SearchBar";
 import FolderModal from "./components/FolderModal";
 import toast, { Toaster } from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 
 const App = () => {
   const [folders, setFolders] = useState(
@@ -19,14 +25,11 @@ const App = () => {
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
-
-  // Delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
@@ -36,11 +39,14 @@ const App = () => {
   }, [folders, folderOrder]);
 
   const addOrUpdateNote = () => {
-    if (!title.trim() || !description.trim()) return;
+    if (!title.trim() || !description.trim()) {
+      toast.error("Title and description are required.");
+      return;
+    }
     const newNote = {
       title,
       description,
-      tags: tags.split(",").map((t) => t.trim()),
+      tags: tags ? tags.split(",").map((t) => t.trim()) : ["note"],
       date: new Date().toLocaleString(),
     };
     setFolders((prev) => {
@@ -57,6 +63,7 @@ const App = () => {
     setTags("");
     setEditIndex(null);
     setShowModal(false);
+    toast.success(editIndex !== null ? "Note updated!" : "Note added!");
   };
 
   const confirmDelete = (index) => {
@@ -71,7 +78,7 @@ const App = () => {
       return { ...prev, [activeFolder]: updated };
     });
     setShowDeleteModal(false);
-    toast.success("Note deleted successfully!");
+    toast.success("Note deleted!");
   };
 
   const editNote = (index) => {
@@ -85,19 +92,17 @@ const App = () => {
 
   const filteredNotes = folders[activeFolder]?.filter((note) => {
     if (!searchQuery) return true;
-
-    const titleMatch = note.title?.toLowerCase().includes(searchQuery);
-    const descMatch = note.description?.toLowerCase().includes(searchQuery);
-    const tagMatch = note.tags?.some((tag) =>
-      tag.toLowerCase().includes(searchQuery)
+    return (
+      note.title?.toLowerCase().includes(searchQuery) ||
+      note.description?.toLowerCase().includes(searchQuery) ||
+      note.tags?.some((tag) => tag.toLowerCase().includes(searchQuery))
     );
-
-    return titleMatch || descMatch || tagMatch;
   });
 
   return (
-    <div className="flex h-screen relative">
+    <div className="flex h-screen relative bg-gradient-to-br from-indigo-50 to-white">
       <Toaster position="top-center" />
+
       {showSidebar && (
         <Sidebar
           folderOrder={folderOrder}
@@ -113,34 +118,40 @@ const App = () => {
         />
       )}
 
-      <div
-        className={`absolute top-1/2 z-40 transform -translate-y-1/2 cursor-pointer text-xl bg-white p-2 rounded-full shadow-md transition-all duration-300 ${
+      <motion.div
+        className={`absolute top-1/2 z-40 -translate-y-1/2 text-xl bg-white p-2 rounded-full shadow-md cursor-pointer transition-all duration-300 ${
           showSidebar ? "left-64" : "left-2"
         }`}
         onClick={() => !sidebarPinned && setShowSidebar(!showSidebar)}
+        whileHover={{ scale: 1.2 }}
+        whileTap={{ scale: 0.9 }}
       >
         {showSidebar ? <MdArrowBackIosNew /> : <MdArrowForwardIos />}
-      </div>
+      </motion.div>
 
       <main className="flex-1 p-6 overflow-y-auto transition-all duration-300">
         <SearchBar setSearchQuery={setSearchQuery} folder={activeFolder} />
-        <br />
-        <button
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowModal(true)}
-          className="bg-purple-600 text-white px-4 py-2 mb-4 rounded hover:bg-purple-700 hover:shadow-lg transition-all duration-300 animate-pulse cursor-pointer"
+          className="mt-4 mb-6 bg-purple-600 text-white px-5 py-2 rounded-full shadow-md hover:bg-purple-700 hover:shadow-xl transition-all"
         >
           + Add Note
-        </button>
+        </motion.button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredNotes?.map((note, i) => (
-            <NoteCard
-              key={i}
-              note={note}
-              onEdit={() => editNote(i)}
-              onDelete={() => confirmDelete(i)}
-            />
-          ))}
+          <AnimatePresence>
+            {filteredNotes?.map((note, i) => (
+              <NoteCard
+                key={i}
+                note={note}
+                onEdit={() => editNote(i)}
+                onDelete={() => confirmDelete(i)}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       </main>
 
@@ -173,16 +184,19 @@ const App = () => {
         />
       )}
 
-      {/* 🗑 Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-xl p-6 w-[90%] max-w-sm shadow-xl">
-            <h2 className="text-lg font-semibold text-red-600 mb-2">
-              Confirm Delete
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl"
+          >
+            <h2 className="text-lg font-semibold text-red-600 mb-2 flex items-center gap-2">
+              <MdOutlineDeleteForever className="text-2xl" /> Confirm Delete
             </h2>
-            <p className="text-sm mb-4">
-              Are you sure you want to delete this note? This action cannot be
-              undone.
+            <p className="text-sm mb-4 text-gray-700">
+              Are you sure you want to delete this note? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -198,7 +212,7 @@ const App = () => {
                 Delete
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

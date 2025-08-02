@@ -1,44 +1,101 @@
+/* eslint-disable no-unused-vars */
 // components/FolderModal.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FolderPlus, X } from "lucide-react";
+import toast from "react-hot-toast";
 
 const FolderModal = ({ closeModal, addFolder }) => {
   const [folderName, setFolderName] = useState("");
+  const [error, setError] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") handleSubmit();
+      if (e.key === "Escape") closeModal();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    inputRef.current?.focus();
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleSubmit = () => {
     if (folderName.trim()) {
       addFolder(folderName.trim());
       setFolderName("");
+      setError(false);
+      toast.success("Folder added successfully!");
+      setTimeout(() => closeModal(), 800);
+    } else {
+      setError(true);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-80 shadow-md">
-        <h2 className="text-lg font-semibold mb-4 text-purple-700 text-center">
-          Create New Folder
-        </h2>
-        <input
-          type="text"
-          placeholder="Folder Name"
-          value={folderName}
-          onChange={(e) => setFolderName(e.target.value)}
-          className="w-full p-2 border rounded mb-4"
-        />
-        <div className="flex justify-between">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-50">
+      <AnimatePresence>
+        <motion.div
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          className="bg-white rounded-xl p-6 w-96 shadow-xl relative"
+        >
+          {/* Close Button */}
           <button
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
             onClick={closeModal}
+            className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
           >
-            Cancel
+            <X size={20} />
           </button>
-          <button
-            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-            onClick={handleSubmit}
-          >
-            Add
-          </button>
-        </div>
-      </div>
+
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-4">
+            <FolderPlus className="text-purple-600" />
+            <h2 className="text-xl font-semibold text-purple-700">
+              Create New Folder
+            </h2>
+          </div>
+
+          {/* Input */}
+          <motion.input
+            ref={inputRef}
+            type="text"
+            placeholder="Folder Name"
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            animate={error ? { x: [0, -8, 8, -6, 6, -4, 4, 0] } : false}
+            className={`w-full p-3 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+              error ? "border-red-500 focus:ring-red-300" : "focus:ring-purple-300"
+            } mb-2`}
+          />
+
+          {/* Error Message */}
+          {error && (
+            <p className="text-sm text-red-500 mb-4">Folder name cannot be empty.</p>
+          )}
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 mt-2">
+            <button
+              className="px-4 py-2 hover:cursor-pointer  text-sm rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+              onClick={closeModal}
+            >
+              Cancel
+            </button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              className="px-4 py-2 hover:cursor-pointer text-sm rounded-md bg-purple-600 text-white hover:bg-purple-700"
+              onClick={handleSubmit}
+            >
+              Add
+            </motion.button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

@@ -29,15 +29,15 @@ const NoteCard = ({ note, onEdit, onDelete, onTagClick }) => {
       exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={{ scale: 1.03 }}
-      className="text-black border border-indigo-500 rounded-2xl p-6 relative hover:shadow-[0_0_25px_rgba(99,102,241,0.8)] transition-all duration-300"
+      className="text-black border border-indigo-400 rounded-2xl p-6 relative shadow-md hover:shadow-[0_0_25px_rgba(99,102,241,0.8)] transition-all duration-300 backdrop-blur-sm bg-white/70"
     >
       {/* Title */}
-      <h3 className="font-bold text-xl text-center  text-indigo-400 mb-4">
+      <h3 className="font-bold text-xl text-center text-indigo-600 mb-4">
         {note.title}
       </h3>
 
       {/* Description */}
-      <div className="text-justify whitespace-pre-line leading-relaxed mb-3">
+      <div className="text-justify whitespace-pre-line leading-relaxed mb-3 text-sm">
         <ReactMarkdown
           components={{
             h1: ({ children }) => (
@@ -63,51 +63,54 @@ const NoteCard = ({ note, onEdit, onDelete, onTagClick }) => {
         {note.description.length > 200 && (
           <button
             onClick={toggleReadMore}
-            className="text-sm text-indigo-400 hover:underline mt-2 hover:cursor-pointer"
+            className="text-sm text-indigo-500 hover:underline mt-2 hover:cursor-pointer"
           >
             {showFullText ? "Read Less" : "Read More"}
           </button>
         )}
       </div>
 
-      {/* Spacer */}
-      <div className="my-4" />
-
       {/* Tags */}
       <div className="flex justify-center flex-wrap gap-3 mb-4">
         {note.tags?.map((tag, idx) => {
           const color = tagColors[idx % tagColors.length];
           return (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               key={idx}
-              onClick={() => {
-                if (typeof onTagClick === "function") onTagClick(tag);
-              }}
+              onClick={() => onTagClick?.(tag)}
               className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${color} 
                 shadow-[inset_4px_4px_8px_rgba(255,255,255,0.6),_inset_-4px_-4px_8px_rgba(0,0,0,0.1)]
-                hover:scale-105 hover:shadow-[0_0_10px_rgba(99,102,241,0.5)]
+                hover:shadow-[0_0_10px_rgba(99,102,241,0.5)]
                 transition-transform duration-150 active:scale-95`}
               title={`Filter by #${tag}`}
             >
               <FaTags className="mr-1" /> #{tag}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
       {/* Date */}
-      <div className="text-xs text-center text-red-600 mb-2">{note.date}</div>
+      <div className="text-xs text-center text-gray-500 italic mb-2">
+        {note.date}
+      </div>
 
       {/* Edit/Delete Actions */}
       <div className="absolute top-3 right-3 flex gap-3">
-        <FaEdit
-          className="text-blue-400 hover:text-blue-600 cursor-pointer"
-          onClick={onEdit}
-        />
-        <MdDelete
-          className="text-red-400 hover:text-red-600 cursor-pointer"
-          onClick={() => onDelete()} // now this will be confirmDelete(index)
-        />
+        <motion.div whileHover={{ scale: 1.2 }}>
+          <FaEdit
+            className="text-blue-400 hover:text-blue-600 cursor-pointer"
+            onClick={onEdit}
+          />
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.2 }}>
+          <MdDelete
+            className="text-red-400 hover:text-red-600 cursor-pointer"
+            onClick={() => onDelete()}
+          />
+        </motion.div>
       </div>
     </motion.div>
   );
