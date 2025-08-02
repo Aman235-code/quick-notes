@@ -33,7 +33,7 @@ const NoteCard = ({ note, onEdit, onDelete, onTagClick }) => {
     >
       {/* Title */}
       <h3 className="font-bold text-xl text-center text-indigo-600 mb-4">
-        {note.title != null ? note.title : "Untitled Note"}
+        {note?.title || "Untitled Note"}
       </h3>
 
       {/* Description */}
