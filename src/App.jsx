@@ -63,7 +63,7 @@ const App = () => {
     setTags("");
     setEditIndex(null);
     setShowModal(false);
-    toast.success(editIndex !== null ? "Note updated!" : "Note added!");
+
   };
 
   const confirmDelete = (index) => {
@@ -101,7 +101,7 @@ const App = () => {
 
   return (
     <div className="flex h-screen relative bg-gradient-to-br from-indigo-50 to-white">
-      <Toaster position="top-center" />
+    
 
       {showSidebar && (
         <Sidebar
@@ -136,7 +136,7 @@ const App = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowModal(true)}
-          className="mt-4 mb-6 bg-purple-600 text-white px-5 py-2 rounded-full shadow-md hover:bg-purple-700 hover:shadow-xl transition-all"
+          className="mt-4 hover:cursor-pointer mb-6 bg-purple-600 text-white px-5 py-2 rounded-full shadow-md hover:bg-purple-700 hover:shadow-xl transition-all"
         >
           + Add Note
         </motion.button>
