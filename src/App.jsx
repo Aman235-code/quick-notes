@@ -33,6 +33,10 @@ const App = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const notesPerPage = 3;
+
   useEffect(() => {
     localStorage.setItem("folders", JSON.stringify(folders));
     localStorage.setItem("folderOrder", JSON.stringify(folderOrder));
@@ -63,7 +67,6 @@ const App = () => {
     setTags("");
     setEditIndex(null);
     setShowModal(false);
-
   };
 
   const confirmDelete = (index) => {
@@ -99,15 +102,32 @@ const App = () => {
     );
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil((filteredNotes?.length || 0) / notesPerPage);
+  const startIndex = (currentPage - 1) * notesPerPage;
+  const paginatedNotes = filteredNotes?.slice(
+    startIndex,
+    startIndex + notesPerPage
+  );
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
   return (
     <div className="flex h-screen relative bg-gradient-to-br from-indigo-50 to-white">
-    
-
       {showSidebar && (
         <Sidebar
           folderOrder={folderOrder}
           activeFolder={activeFolder}
-          setActiveFolder={setActiveFolder}
+          setActiveFolder={(folder) => {
+            setActiveFolder(folder);
+            setCurrentPage(1); // reset page when switching folder
+          }}
           folders={folders}
           setFolders={setFolders}
           setFolderOrder={setFolderOrder}
@@ -142,17 +162,38 @@ const App = () => {
         </motion.button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <AnimatePresence>
-            {filteredNotes?.map((note, i) => (
-              <NoteCard
-                key={i}
-                note={note}
-                onEdit={() => editNote(i)}
-                onDelete={() => confirmDelete(i)}
-              />
-            ))}
-          </AnimatePresence>
+          {paginatedNotes?.map((note, i) => (
+            <NoteCard
+              key={startIndex + i}
+              note={note}
+              onEdit={() => editNote(startIndex + i)}
+              onDelete={() => confirmDelete(startIndex + i)}
+            />
+          ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-6 mt-6">
+            <button
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+            >
+              <MdArrowBackIosNew /> Prev
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+            >
+              Next <MdArrowForwardIos />
+            </button>
+          </div>
+        )}
       </main>
 
       {showModal && (
@@ -178,6 +219,7 @@ const App = () => {
               setFolders(updated);
               setFolderOrder((prev) => [...prev, name]);
               setActiveFolder(name);
+              setCurrentPage(1);
             }
             setShowFolderModal(false);
           }}
@@ -196,7 +238,8 @@ const App = () => {
               <MdOutlineDeleteForever className="text-2xl" /> Confirm Delete
             </h2>
             <p className="text-sm mb-4 text-gray-700">
-              Are you sure you want to delete this note? This action cannot be undone.
+              Are you sure you want to delete this note? This action cannot be
+              undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
