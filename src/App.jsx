@@ -58,7 +58,7 @@ const App = () => {
       if (editIndex !== null) {
         updated[editIndex] = newNote;
       } else {
-        updated.push(newNote);
+        updated.unshift(newNote); // adds note at the start (latest first)
       }
       return { ...prev, [activeFolder]: updated };
     });
