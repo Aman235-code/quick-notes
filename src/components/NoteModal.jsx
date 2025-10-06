@@ -26,7 +26,6 @@ const NoteModal = ({
       return;
     }
 
-    // Add default tag if none present
     const cleanedTags = tags.trim() ? tags : "#note";
     setTags(cleanedTags);
 
@@ -36,20 +35,20 @@ const NoteModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <AnimatePresence>
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className={`bg-white p-6 rounded-2xl w-full md:w-[500px] mx-4 space-y-4 shadow-2xl relative ${
+          className={`bg-gray-900 text-gray-100 p-6 rounded-2xl w-full md:w-[500px] mx-4 space-y-4 shadow-2xl relative ${
             shake ? "animate-shake" : ""
           }`}
         >
-          {/* Header with icon and title */}
+          {/* Header */}
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-purple-700 font-bold text-lg">
+            <div className="flex items-center gap-2 text-purple-400 font-bold text-lg">
               {isEdit ? <Pencil size={20} /> : <FilePlus2 size={20} />}
               {isEdit ? "Edit Note" : "Create New Note"}
             </div>
@@ -61,12 +60,13 @@ const NoteModal = ({
             </button>
           </div>
 
+          {/* Inputs */}
           <input
             type="text"
             placeholder="Note title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-3 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full p-3 border border-gray-700 rounded-md text-sm bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
 
           <textarea
@@ -74,7 +74,7 @@ const NoteModal = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
-            className="w-full p-3 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full p-3 border border-gray-700 rounded-md text-sm bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
           ></textarea>
 
           <input
@@ -82,13 +82,14 @@ const NoteModal = ({
             placeholder="Tags (comma separated)"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            className="w-full p-3 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full p-3 border border-gray-700 rounded-md text-sm bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
 
+          {/* Actions */}
           <div className="flex justify-between items-center pt-2">
             <button
               onClick={closeModal}
-              className="text-gray-500 hover:cursor-pointer hover:text-gray-700 text-sm"
+              className="text-gray-400 hover:text-gray-200 text-sm"
             >
               Cancel
             </button>

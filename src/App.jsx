@@ -30,10 +30,16 @@ const App = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
+
+  // Note Delete
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
-  // Pagination state
+  // Folder Delete
+  const [showFolderDeleteModal, setShowFolderDeleteModal] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState(null);
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const notesPerPage = 3;
 
@@ -58,7 +64,7 @@ const App = () => {
       if (editIndex !== null) {
         updated[editIndex] = newNote;
       } else {
-        updated.unshift(newNote); // adds note at the start (latest first)
+        updated.unshift(newNote);
       }
       return { ...prev, [activeFolder]: updated };
     });
@@ -69,12 +75,12 @@ const App = () => {
     setShowModal(false);
   };
 
-  const confirmDelete = (index) => {
+  const confirmDeleteNote = (index) => {
     setDeleteIndex(index);
     setShowDeleteModal(true);
   };
 
-  const handleDelete = () => {
+  const handleDeleteNote = () => {
     setFolders((prev) => {
       const updated = [...prev[activeFolder]];
       updated.splice(deleteIndex, 1);
@@ -93,6 +99,28 @@ const App = () => {
     setShowModal(true);
   };
 
+  // Folder Deletion
+  const handleDeleteFolder = (folderName) => {
+    if (folderName === "General") {
+      toast.error("You cannot delete the default 'General' folder.");
+      return;
+    }
+
+    setFolders((prev) => {
+      const updatedFolders = { ...prev };
+      delete updatedFolders[folderName];
+      return updatedFolders;
+    });
+
+    setFolderOrder((prev) => prev.filter((f) => f !== folderName));
+
+    if (activeFolder === folderName) {
+      setActiveFolder("General");
+    }
+
+    toast.success(`Folder "${folderName}" deleted!`);
+  };
+
   const filteredNotes = folders[activeFolder]?.filter((note) => {
     if (!searchQuery) return true;
     return (
@@ -102,7 +130,6 @@ const App = () => {
     );
   });
 
-  // Pagination logic
   const totalPages = Math.ceil((filteredNotes?.length || 0) / notesPerPage);
   const startIndex = (currentPage - 1) * notesPerPage;
   const paginatedNotes = filteredNotes?.slice(
@@ -119,14 +146,17 @@ const App = () => {
   };
 
   return (
-    <div className="flex h-screen relative bg-gradient-to-br from-indigo-50 to-white">
+    <div className="flex h-screen relative bg-gray-900 text-gray-100">
+      <Toaster position="top-right" />
+
+      {/* Sidebar */}
       {showSidebar && (
         <Sidebar
           folderOrder={folderOrder}
           activeFolder={activeFolder}
           setActiveFolder={(folder) => {
             setActiveFolder(folder);
-            setCurrentPage(1); // reset page when switching folder
+            setCurrentPage(1);
           }}
           folders={folders}
           setFolders={setFolders}
@@ -135,11 +165,16 @@ const App = () => {
           togglePin={() => setSidebarPinned(!sidebarPinned)}
           openModal={() => setShowModal(true)}
           setShowFolderModal={setShowFolderModal}
+          handleDeleteFolder={(folderName) => {
+            setFolderToDelete(folderName);
+            setShowFolderDeleteModal(true);
+          }}
         />
       )}
 
+      {/* Sidebar toggle */}
       <motion.div
-        className={`absolute top-1/2 z-40 -translate-y-1/2 text-xl bg-white p-2 rounded-full shadow-md cursor-pointer transition-all duration-300 ${
+        className={`absolute top-1/2 z-40 -translate-y-1/2 text-xl bg-gray-800 text-white p-2 rounded-full shadow-md cursor-pointer transition-all duration-300 ${
           showSidebar ? "left-64" : "left-2"
         }`}
         onClick={() => !sidebarPinned && setShowSidebar(!showSidebar)}
@@ -149,14 +184,15 @@ const App = () => {
         {showSidebar ? <MdArrowBackIosNew /> : <MdArrowForwardIos />}
       </motion.div>
 
-      <main className="flex-1 p-6 overflow-y-auto transition-all duration-300">
+      {/* Main Content */}
+      <main className="flex-1 p-6 overflow-y-auto transition-all duration-300 bg-gray-800">
         <SearchBar setSearchQuery={setSearchQuery} folder={activeFolder} />
 
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowModal(true)}
-          className="mt-4 hover:cursor-pointer mb-6 bg-purple-600 text-white px-5 py-2 rounded-full shadow-md hover:bg-purple-700 hover:shadow-xl transition-all"
+          className="mt-4 mb-6 bg-purple-600 text-white px-5 py-2 rounded-full shadow-md hover:bg-purple-700 hover:shadow-xl transition-all"
         >
           + Add Note
         </motion.button>
@@ -167,28 +203,28 @@ const App = () => {
               key={startIndex + i}
               note={note}
               onEdit={() => editNote(startIndex + i)}
-              onDelete={() => confirmDelete(startIndex + i)}
+              onDelete={() => confirmDeleteNote(startIndex + i)}
             />
           ))}
         </div>
 
-        {/* Pagination Controls */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-6 mt-6">
             <button
               onClick={goToPrevPage}
               disabled={currentPage === 1}
-              className="flex items-center gap-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+              className="flex items-center gap-1 px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
             >
               <MdArrowBackIosNew /> Prev
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-300">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={goToNextPage}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-1 px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+              className="flex items-center gap-1 px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50"
             >
               Next <MdArrowForwardIos />
             </button>
@@ -196,6 +232,7 @@ const App = () => {
         )}
       </main>
 
+      {/* Note Modal */}
       {showModal && (
         <NoteModal
           title={title}
@@ -210,6 +247,7 @@ const App = () => {
         />
       )}
 
+      {/* Folder Modal */}
       {showFolderModal && (
         <FolderModal
           closeModal={() => setShowFolderModal(false)}
@@ -226,30 +264,66 @@ const App = () => {
         />
       )}
 
+      {/* Note Delete Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl"
+            className="bg-gray-800 rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl"
           >
-            <h2 className="text-lg font-semibold text-red-600 mb-2 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-red-500 mb-2 flex items-center gap-2">
               <MdOutlineDeleteForever className="text-2xl" /> Confirm Delete
             </h2>
-            <p className="text-sm mb-4 text-gray-700">
-              Are you sure you want to delete this note? This action cannot be
-              undone.
+            <p className="text-sm mb-4 text-gray-200">
+              Are you sure you want to delete this note? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300"
+                className="px-4 py-2 text-sm rounded bg-gray-600 hover:bg-gray-500"
               >
                 Cancel
               </button>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteNote}
+                className="px-4 py-2 text-sm rounded bg-red-500 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Folder Delete Modal */}
+      {showFolderDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-gray-800 rounded-2xl p-6 w-[90%] max-w-sm shadow-2xl"
+          >
+            <h2 className="text-lg font-semibold text-red-500 mb-2 flex items-center gap-2">
+              <MdOutlineDeleteForever className="text-2xl" /> Delete Folder
+            </h2>
+            <p className="text-sm mb-4 text-gray-200">
+              Are you sure you want to delete the folder{" "}
+              <span className="font-semibold">{folderToDelete}</span>? This will also remove all notes inside it.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowFolderDeleteModal(false)}
+                className="px-4 py-2 text-sm rounded bg-gray-600 hover:bg-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  handleDeleteFolder(folderToDelete);
+                  setShowFolderDeleteModal(false);
+                }}
                 className="px-4 py-2 text-sm rounded bg-red-500 text-white hover:bg-red-600"
               >
                 Delete
