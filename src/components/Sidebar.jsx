@@ -34,7 +34,7 @@ const Sidebar = ({
   return (
     <>
       <aside
-        className={`fixed md:relative z-50 w-64 bg-gray-900 p-4 shadow-xl h-full border-r border-gray-700 overflow-y-auto transition-transform duration-300 ${
+        className={`fixed md:relative z-50 w-64 bg-gray-900 p-4 shadow-xl h-full border-r border-gray-700 overflow-y-auto scrollbar-hide transition-transform duration-300 ${
           isCollapsed ? "-translate-x-64" : "translate-x-0"
         }`}
       >
@@ -83,6 +83,7 @@ const Sidebar = ({
         </div>
 
         <Tooltip id="deleteTip" content="Delete Folder" />
+        <Tooltip id="addTip" content="Add Folder" />
       </aside>
 
       {/* Delete Confirmation Modal */}
